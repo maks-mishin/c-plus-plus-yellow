@@ -148,11 +148,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="week-1\beatiful_output.h" />
     <ClInclude Include="week-1\Matrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="team_tasks.cpp" />
+    <ClCompile Include="week-1\sqr_all.cpp" />
+    <ClCompile Include="week-1\team_tasks.cpp" />
     <ClCompile Include="week-1\average_temp.cpp" />
     <ClCompile Include="week-1\find_repetition_count.cpp" />
   </ItemGroup>

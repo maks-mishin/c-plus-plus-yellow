@@ -18,6 +18,9 @@
     <ClInclude Include="week-1\Matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="week-1\beatiful_output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -29,7 +32,10 @@
     <ClCompile Include="week-1\find_repetition_count.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="team_tasks.cpp">
+    <ClCompile Include="week-1\team_tasks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="week-1\sqr_all.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
