@@ -21,7 +21,7 @@ size_t GetSynonymsCount(Synonyms& synonyms,
 
 bool AreSynonyms(Synonyms& synonyms, const string& first_word,
                  const string& second_word) {
-    return synonyms[first_word].count(second_word) == 0;
+    return synonyms[first_word].count(second_word) == 1;
 }
 
 template <class T>
@@ -90,7 +90,6 @@ void TestAddSynonyms() {
         };
         AssertEqual(synonyms, expected, "Add to synonyms");
     }
-    cout << "TestAddSynonyms OK" << endl;
 }
 
 void TestCount() {
@@ -108,7 +107,6 @@ void TestCount() {
         AssertEqual(GetSynonymsCount(synonyms, "b"), 1u, "count for b");
         AssertEqual(GetSynonymsCount(synonyms, "z"), 0u, "count for z");
     }
-    cout << "TestCount OK" << endl;
 }
 
 void TestAreSynonyms() {
@@ -130,23 +128,44 @@ void TestAreSynonyms() {
         Assert(!AreSynonyms(synonyms, "b", "c"), "");
         Assert(!AreSynonyms(synonyms, "c", "b"), "");
     }
-    cout << "TestAreSynonyms OK" << endl;
 }
 
-template <class TestFunc>
-void RunTest(TestFunc func, const string& test_name) {
-    try {
-        func();
-    } catch (runtime_error& e) {
-        cout << test_name << " fail: " << e.what() << endl;
+class TestRunner {
+public:
+    template <class TestFunc>
+    void RunTest(TestFunc func, const string& test_name) {
+        try {
+            func();
+            cerr << test_name << " OK" << endl;
+        } catch (runtime_error& e) {
+            fail_count++;
+            cerr << test_name << " fail: " << e.what() << endl;
+        }
     }
+
+    ~TestRunner() {
+        if (fail_count > 0) {
+            cerr << fail_count << " tests failed. Terminate";
+            exit(1);
+        }
+    }
+
+private:
+    int fail_count = 0;
+};
+
+void TestAll() {
+    TestRunner tr;
+    tr.RunTest(TestAreSynonyms, "TestAreSynonyms");
+    tr.RunTest(TestCount, "TestCount");
+    tr.RunTest(TestAddSynonyms, "TestAddSynonyms");
+
+
 }
 
 int main() {
-    RunTest(TestAreSynonyms, "TestAreSynonyms");
-    RunTest(TestCount, "TestCount");
-    RunTest(TestAddSynonyms, "TestAddSynonyms");
-    return 0;
+    TestAll();
+//    return 0;
 
     int count_operations;
     cin >> count_operations;
