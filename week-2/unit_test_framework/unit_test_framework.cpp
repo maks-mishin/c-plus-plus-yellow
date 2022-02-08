@@ -1,13 +1,7 @@
 // Author : Maks Mishin
-// Date : 2/5/2022.
+// Date : 2/8/2022
 
-#ifndef C_PLUS_PLUS_YELLOW_UNITTESTFRAMEWORK_H
-#define C_PLUS_PLUS_YELLOW_UNITTESTFRAMEWORK_H
-
-#include <iostream>
-#include <set>
-#include <sstream>
-#include <map>
+#include "unit_test_framework.h"
 
 using namespace std;
 
@@ -53,31 +47,24 @@ void Assert(bool b, const string& hint) {
     AssertEqual(b, true, hint);
 }
 
-class TestRunner {
-public:
-    template <class TestFunc>
-    void RunTest(TestFunc func, const string& test_name) {
-        try {
-            func();
-            cerr << test_name << " OK" << endl;
-        } catch (exception& e) {
-            ++fail_count;
-            cerr << test_name << " fail: " << e.what() << endl;
-        } catch (...) {
-            ++fail_count;
-            cerr << "Unknown exception caught" << endl;
-        }
+template <class TestFunc>
+void TestRunner::RunTest(TestFunc func, const string& test_name) {
+    try {
+        func();
+        cerr << test_name << " OK" << endl;
+    } catch (exception& e) {
+        ++fail_count;
+        cerr << test_name << " fail: " << e.what() << endl;
+    } catch (...) {
+        ++fail_count;
+        cerr << "Unknown exception caught" << endl;
     }
+}
 
-    ~TestRunner() {
-        if (fail_count > 0) {
-            cerr << fail_count << " unit tests failed. Terminate" << endl;
-            exit(1);
-        }
+TestRunner::~TestRunner() {
+    if (fail_count > 0) {
+        cerr << fail_count << " unit tests failed. Terminate" << endl;
+        exit(1);
     }
+}
 
-private:
-    int fail_count = 0;
-};
-
-#endif //C_PLUS_PLUS_YELLOW_UNITTESTFRAMEWORK_H

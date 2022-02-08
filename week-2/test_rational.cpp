@@ -1,7 +1,7 @@
 // Author : Maks Mishin
 // Date : 2/7/2022.
 
-#include "UnitTestFramework.h"
+#include "unit_test_framework/unit_test_framework.h"
 
 class Rational {
 public:
