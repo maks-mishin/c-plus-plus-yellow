@@ -1,8 +1,7 @@
 // Author : Maks Mishin
 // Date : 2/5/2022
 
-#ifndef C_PLUS_PLUS_YELLOW_UNIT_TEST_FRAMEWORK_H
-#define C_PLUS_PLUS_YELLOW_UNIT_TEST_FRAMEWORK_H
+#pragma once
 
 #include <iostream>
 #include <set>
@@ -29,5 +28,3 @@ public:
 private:
     int fail_count = 0;
 };
-
-#endif //C_PLUS_PLUS_YELLOW_UNIT_TEST_FRAMEWORK_H

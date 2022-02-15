@@ -19,8 +19,8 @@ void MergeSortDiv2(RandomIt range_begin, RandomIt range_end) {
 
     auto it_mid = begin(elements) + elements.size() / 2;
 
-    MergeSort(begin(elements), it_mid);
-    MergeSort(it_mid, end(elements));
+    MergeSortDiv2(begin(elements), it_mid);
+    MergeSortDiv2(it_mid, end(elements));
 
     std::merge(begin(elements), it_mid, it_mid, end(elements), range_begin);
 }
