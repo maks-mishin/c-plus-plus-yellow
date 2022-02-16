@@ -1,5 +1,5 @@
 // Author : Maks Mishin
-// Date 2/10/2022.
+// Date 2/16/2022.
 //
 
 #include <iostream>
@@ -14,70 +14,85 @@
 
 using namespace std;
 
-struct Day {
-    int value;
-    explicit Day(int new_value) {
-        value = new_value;
-    }
-};
+class Date {
+public:
+    static Date ConvertStringToDate(const string& date_string) {
+        auto it_year = find(begin(date_string), end(date_string), '-');
+        int year = stoi(string(begin(date_string), it_year));
 
-struct Month {
-    int value;
-    explicit Month(int new_value) {
-        value = new_value;
-    }
-};
+        auto it_month = find(it_year+1, end(date_string), '-');
+        int month = stoi(string(it_year+1, it_month));
 
-struct Year {
-    int value;
-    explicit Year(int new_value) {
-        value = new_value;
+        int day = stoi(string(it_month+1, end(date_string)));
+        return {year, month, day};
     }
-};
 
-struct Date {
-    int day{};
-    int month{};
-    int year{};
-    Date() = default;
-    Date(Day new_day, Month new_month, Year new_year) {
-        day = new_day.value;
-        month = new_month.value;
-        year = new_year.value;
+    time_t AsTimestamp() const {
+        tm t;
+        t.tm_sec  = 0;
+        t.tm_min  = 0;
+        t.tm_hour = 0;
+        t.tm_mday = day_;
+        t.tm_mon  = month_ - 1;
+        t.tm_year = year_ - 1900;
+        t.tm_isdst = 0;
+        return mktime(&t);
     }
+
+    friend bool operator<(const Date& lhs, const Date& rhs);
+    friend bool operator==(const Date& lhs, const Date& rhs);
+    Date& operator++();
+private:
+    int year_;
+    int month_;
+    int day_;
+
+    Date(int year, int month, int day)
+            : year_(year), month_(month), day_(day) {}
 };
 
 // returns difference between two dates in days
 auto DiffDates(const Date& date_from, const Date& date_to) {
-    std::tm dur[2] {
-            {0,0,0, date_from.day,date_from.month - 1,date_from.year - 1900},
-            {0,0,0, date_to.day, date_to.month - 1, date_to.year - 1900}
-    };
-    std::time_t t1 {std::mktime(dur)}, t2 {std::mktime(dur+1)};
-    if ( t1 != (std::time_t)(-1) && t2 != (std::time_t)(-1) ) {
-        return std::difftime(t2, t1) / (60 * 60 * 24);
-    }
-    return 0.0;
+    const time_t timestamp_to = date_to.AsTimestamp();
+    const time_t timestamp_from = date_from.AsTimestamp();
+    static constexpr int SECONDS_IN_DAY = 60 * 60 * 24;
+    return difftime(timestamp_to, timestamp_from) / SECONDS_IN_DAY;
 }
 
 bool operator<(const Date& lhs, const Date& rhs) {
-    return tie(lhs.year, lhs.month, lhs.day) < tie(rhs.year, rhs.month, rhs.day);
+    return tie(lhs.year_, lhs.month_, lhs.day_) < tie(rhs.year_, rhs.month_, rhs.day_);
 }
 
 bool operator==(const Date& lhs, const Date& rhs) {
-    return tie(lhs.year, lhs.month, lhs.day) == tie(rhs.year, rhs.month, rhs.day);
+    return tie(lhs.year_, lhs.month_, lhs.day_) == tie(rhs.year_, rhs.month_, rhs.day_);
 }
 
-Date ConvertStringToDate(const string& date_string) {
-    Date result_date;
-    auto it_year = find(begin(date_string), end(date_string), '-');
-    result_date.year = stoi(string(begin(date_string), it_year));
+bool IsLeapYear(int year) {
+    return year % 4 == 0 and year % 100 != 0 or year % 400 == 0;
+}
 
-    auto it_month = find(it_year+1, end(date_string), '-');
-    result_date.month = stoi(string(it_year+1, it_month));
+Date &Date::operator++() {
+    vector<int> days = {31,28,31,30,31,30,31,31,30,31,30,31};
+    if(IsLeapYear(year_))
+        days[1] = 29;
 
-    result_date.day = stoi(string(it_month+1, end(date_string)));
-    return result_date;
+    int days_month = days[month_ - 1];
+
+    if (day_ < days_month) {
+        day_++;
+    }
+    else {
+        day_ = 1;
+
+        if( month_ < 12 ) {
+            month_++;
+        }
+        else {
+            month_ = 1;
+            year_++;
+        }
+    }
+    return *this;
 }
 
 double ComputeIncome(map<Date, double>& budget, const Date& date_from, const Date& date_to) {
@@ -109,43 +124,11 @@ double ComputeIncome(map<Date, double>& budget, const Date& date_from, const Dat
     return income;
 }
 
-bool IsLeapYear(int year) {
-    return year % 4 == 0 and year % 100 != 0 or year % 400 == 0;
-}
-
-int DaysOfMonth(const Date& date) {
-    vector<int> days = {31,28,31,30,31,30,31,31,30,31,30,31};
-    if(IsLeapYear(date.year))
-        days[1] = 29;
-    return days[date.month - 1];
-}
-
-Date IncDate(const Date& date)
-{
-    Date result = date;
-    if (result.day < DaysOfMonth(result)) {
-        result.day++;
-    }
-    else {
-        result.day = 1;
-
-        if( result.month < 12 ) {
-            result.month++;
-        }
-        else {
-            result.month = 1;
-            result.year++;
-        }
-    }
-    return result;
-}
-
 void Earn(map<Date, double>& budget, const Date& date_from, const Date& date_to, int value) {
     if (date_to < date_from) {
         throw invalid_argument("argument 'date_to' should be great of 'date_from'");
     }
-    Date tempDate;
-    tempDate = date_from;
+    Date tempDate = date_from;
 
     auto count_days = DiffDates(date_from, date_to) + 1; // разница между датами в днях
     auto part_value = value / count_days;
@@ -157,22 +140,27 @@ void Earn(map<Date, double>& budget, const Date& date_from, const Date& date_to,
         else {
             budget[tempDate] = part_value;
         }
-        tempDate = IncDate(tempDate);
+        ++tempDate;
     }
 }
 
 void TestAuthor() {
     map<Date, double> budget;
     double income;
-    Earn(budget, ConvertStringToDate("2000-01-02"), ConvertStringToDate("2000-01-06"), 20);
-    income = ComputeIncome(budget, ConvertStringToDate("2000-01-01"), ConvertStringToDate("2001-01-01"));
+    Earn(budget, Date::ConvertStringToDate("2000-01-02"),
+            Date::ConvertStringToDate("2000-01-06"), 20);
+    income = ComputeIncome(budget, Date::ConvertStringToDate("2000-01-01"),
+                           Date::ConvertStringToDate("2001-01-01"));
     AssertEqual(income, 20, "author test income 20");
 
-    income = ComputeIncome(budget, ConvertStringToDate("2000-01-01"), ConvertStringToDate("2000-01-03"));
+    income = ComputeIncome(budget, Date::ConvertStringToDate("2000-01-01"),
+                           Date::ConvertStringToDate("2000-01-03"));
     AssertEqual(income, 8, "author test income 8");
 
-    Earn(budget, ConvertStringToDate("2000-01-03"), ConvertStringToDate("2000-01-03"), 10);
-    income = ComputeIncome(budget, ConvertStringToDate("2000-01-01"), ConvertStringToDate("2001-01-01"));
+    Earn(budget, Date::ConvertStringToDate("2000-01-03"),
+         Date::ConvertStringToDate("2000-01-03"), 10);
+    income = ComputeIncome(budget, Date::ConvertStringToDate("2000-01-01"),
+                           Date::ConvertStringToDate("2001-01-01"));
     AssertEqual(income, 30, "author test income 30");
 }
 
@@ -180,20 +168,25 @@ void TestFirst() {
     map<Date, double> budget;
     double income;
 //    test zero income
-    Earn(budget, ConvertStringToDate("2000-01-01"), ConvertStringToDate("2000-01-01"), 0);
-    income = ComputeIncome(budget, ConvertStringToDate("2000-01-01"), ConvertStringToDate("2001-01-01"));
+    Earn(budget, Date::ConvertStringToDate("2000-01-01"),
+            Date::ConvertStringToDate("2000-01-01"), 0);
+    income = ComputeIncome(budget, Date::ConvertStringToDate("2000-01-01"),
+                           Date::ConvertStringToDate("2001-01-01"));
     AssertEqual(income, 0, "first test income 0");
 
 //    test income for several months
-    Earn(budget, ConvertStringToDate("2000-01-17"), ConvertStringToDate("2000-02-01"), 900);
-    income = ComputeIncome(budget, ConvertStringToDate("2000-01-17"), ConvertStringToDate("2000-02-01"));
+    Earn(budget, Date::ConvertStringToDate("2000-01-17"),
+         Date::ConvertStringToDate("2000-02-01"), 900);
+    income = ComputeIncome(budget, Date::ConvertStringToDate("2000-01-17"),
+                           Date::ConvertStringToDate("2000-02-01"));
     AssertEqual(income, 900, "first test income 900");
 }
 
 int main() {
-//    TestRunner runner;
-//    runner.RunTest(TestAuthor, "TestAuthor");
-//    runner.RunTest(TestFirst, "TestFirst");
+    TestRunner runner;
+    runner.RunTest(TestAuthor, "TestAuthor");
+    runner.RunTest(TestFirst, "TestFirst");
+
     cout.precision(25);
     map<Date, double> budget;
     int q, value;
@@ -203,14 +196,15 @@ int main() {
         cin >> command;
         if (command == "ComputeIncome") {
             cin >> date_from >> date_to;
-            cout << ComputeIncome(budget, ConvertStringToDate(date_from), ConvertStringToDate(date_to)) << endl;
+            cout << ComputeIncome(budget, Date::ConvertStringToDate(date_from),
+                                  Date::ConvertStringToDate(date_to)) << endl;
         }
         else if (command == "Earn") {
             cin >> date_from >> date_to;
             cin >> value;
-            Earn(budget, ConvertStringToDate(date_from), ConvertStringToDate(date_to), value);
+            Earn(budget, Date::ConvertStringToDate(date_from),
+                 Date::ConvertStringToDate(date_to), value);
         }
     }
     return 0;
 }
-
