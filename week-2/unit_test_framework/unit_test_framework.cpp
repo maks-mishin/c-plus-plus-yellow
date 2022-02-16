@@ -33,16 +33,6 @@ ostream& operator << (ostream& os, const map<K, V>& m) {
     return os << "}";
 }
 
-template <class T, class U>
-void AssertEqual(const T& t, const U& u, const string& hint) {
-    if (t != u) {
-        ostringstream os;
-        os << "Assertion failed: " << t << " != " << u
-           << " Hint: " << hint;
-        throw runtime_error(os.str());
-    }
-}
-
 void Assert(bool b, const string& hint) {
     AssertEqual(b, true, hint);
 }
